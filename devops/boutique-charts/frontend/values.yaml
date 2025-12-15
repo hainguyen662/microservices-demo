@@ -1,0 +1,71 @@
+images:
+  repository: bravelove123/ecr
+  tag: "3ac8898a"
+  fullImage: "bravelove123/ecr:d30e2dbf"
+
+serviceAccounts:
+  create: true
+  annotations: {}
+  annotationsOnlyForCartservice: false
+
+networkPolicies:
+  create: false
+
+sidecars:
+  create: false
+
+authorizationPolicies:
+  create: false
+
+opentelemetryCollector:
+  create: false
+  name: opentelemetrycollector
+  projectId: ""
+
+seccompProfile:
+  enable: false
+  type: RuntimeDefault
+
+securityContext:
+  enable: true
+
+# Service references (used in environment variables)
+productCatalogService:
+  name: productcatalogservice
+
+shippingService:
+  name: shippingservice
+
+paymentService:
+  name: paymentservice
+
+cartService:
+  name: cartservice
+
+emailService:
+  name: emailservice
+
+currencyService:
+  name: currencyservice
+
+frontend:
+  create: true
+  name: frontend
+  containerPort: 8080
+  servicePort: 80
+  resources:
+    requests:
+      cpu: 100m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+  autoscaling:
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 60
+
+googleCloudOperations:
+  profiler: false
+  tracing: false
+  metrics: false

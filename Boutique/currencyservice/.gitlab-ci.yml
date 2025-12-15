@@ -1,0 +1,99 @@
+stages:
+  - build_and_push
+
+variables:
+  IMAGE_TAG: "$CI_COMMIT_SHORT_SHA"
+  DOCKER_HOST: "tcp://docker:2375"
+  DOCKER_TLS_CERTDIR: ""
+  SERVICE_NAME: "currencyservice"
+
+build_and_push_image:
+  stage: build_and_push
+  image: docker:24.0.5
+  services:
+    - docker:24.0.5-dind
+  script: |
+    set -e
+    echo "[INFO] Building and pushing Docker image"
+    apk add --no-cache git curl wget
+
+    # Build image
+    docker build -t "$DOCKERHUB_REPO:$IMAGE_TAG" .
+    
+    # Login Docker registry
+    echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USER" --password-stdin
+    
+    # Push image
+    echo "[INFO] Pushing image to $DOCKERHUB_REPO:$IMAGE_TAG"
+    docker push "$DOCKERHUB_REPO:$IMAGE_TAG"
+
+    # --- Update Helm values after push ---
+    if [ -z "$GITLAB_TOKEN" ]; then echo "[ERROR] Missing GITLAB_TOKEN" >&2; exit 1; fi
+    echo "[INFO] Image tag: $IMAGE_TAG"
+    [ -z "$GITLAB_HOST" ] && GITLAB_HOST=192.168.0.104
+    [ -z "$GITLAB_PROTOCOL" ] && GITLAB_PROTOCOL=https
+    export GIT_SSL_NO_VERIFY=1
+    [ -z "$HELM_REPO_PATH" ] && HELM_REPO_PATH=devops/boutique-charts.git
+    echo "[INFO] GitLab host: $GITLAB_HOST protocol: $GITLAB_PROTOCOL repo: $HELM_REPO_PATH"
+    HELM_REPO_CLONE_URL="${GITLAB_PROTOCOL}://oauth2:${GITLAB_TOKEN}@${GITLAB_HOST}/${HELM_REPO_PATH}"
+
+    # Set variable for cloned directory
+    CLONE_DIR="../boutique-charts"
+
+    echo "[INFO] Cloning $HELM_REPO_PATH"
+    rm -rf "$CLONE_DIR" 2>/dev/null || true
+    if ! git clone --depth 1 "$HELM_REPO_CLONE_URL" "$CLONE_DIR" 2>/dev/null; then
+      echo "[WARN] Clone failed over $GITLAB_PROTOCOL" >&2
+      if [ "$GITLAB_PROTOCOL" = "https" ]; then
+        echo "[INFO] Fallback to http" >&2
+        GITLAB_PROTOCOL=http
+        HELM_REPO_CLONE_URL="${GITLAB_PROTOCOL}://oauth2:${GITLAB_TOKEN}@$GITLAB_HOST/$HELM_REPO_PATH"
+        rm -rf "$CLONE_DIR" 2>/dev/null || true
+        git clone --depth 1 "$HELM_REPO_CLONE_URL" "$CLONE_DIR" || { echo "[ERROR] Clone failed over http fallback" >&2; exit 1; }
+      else
+        echo "[ERROR] Clone failed over http; abort" >&2; exit 1
+      fi
+    fi
+
+    # Locate Helm values.yaml
+    UPDATED=0
+    
+    # [FIX 1] Change bash array to string for sh compatibility
+    CANDIDATES="$CLONE_DIR/${SERVICE_NAME}/values.yaml $CLONE_DIR/devops/boutique-charts/${SERVICE_NAME}/values.yaml $CLONE_DIR/devops/Boutique-charts/${SERVICE_NAME}/values.yaml $CLONE_DIR/values.yaml"
+    
+    # [FIX 2] Use standard 'for' loop for sh
+    for f in $CANDIDATES; do
+      if [ -f "$f" ]; then
+        echo "[INFO] Updating image repository and tag in $f"
+        sed -i -E "s|(^[[:space:]]*repository:).*|\1 bravelove123/ecr|" "$f" || true
+        sed -i -E "s|(^[[:space:]]*tag:).*|\1 \"$IMAGE_TAG\"|" "$f" || true
+        UPDATED=1
+        VALUES_FILE="$f"
+        break
+      fi
+    done
+
+    if [ "$UPDATED" -ne 1 ]; then
+      
+      echo "[WARN] Could not find ${SERVICE_NAME} values.yaml in cloned helm repo. Tried: $CANDIDATES" >&2
+    else
+      
+      cd "$CLONE_DIR" 
+      
+      # 2. Get the relative path of the updated file (e.g. '${SERVICE_NAME}/values.yaml')
+      RELATIVE_FILE_PATH=$(echo "$VALUES_FILE" | sed "s|^$CLONE_DIR/||") 
+
+      git config user.email "ci-bot@example.com" # (Nên dùng email hợp lệ)
+      git config user.name "CI Bot"
+      
+      # 3. Add the correct file using the relative path
+      git add "$RELATIVE_FILE_PATH" 
+      
+      git commit -m "ci: update values tag $IMAGE_TAG" || echo "No changes to commit"
+      git push origin HEAD:main || echo "No changes to push"
+      cd -
+    fi
+  only:
+    - main
+  tags:
+    - docker

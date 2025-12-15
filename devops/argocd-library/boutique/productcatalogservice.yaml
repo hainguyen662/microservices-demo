@@ -1,0 +1,22 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: productcatalogservice
+  namespace: argocd
+spec:
+  project: boutique
+  source:
+    repoURL: 'http://192.168.0.104/devops/Boutique-charts.git'
+    targetRevision: main
+    path: productcatalogservice
+    helm:
+      releaseName: productcatalogservice
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: boutique
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

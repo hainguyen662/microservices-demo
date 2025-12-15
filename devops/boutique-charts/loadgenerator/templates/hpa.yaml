@@ -1,0 +1,19 @@
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ .Values.loadgenerator.name }}-hpa
+  namespace: {{ .Release.Namespace }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ .Values.loadgenerator.name }}
+  minReplicas: {{ .Values.loadgenerator.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.loadgenerator.autoscaling.maxReplicas }}
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.loadgenerator.autoscaling.targetCPUUtilizationPercentage }}

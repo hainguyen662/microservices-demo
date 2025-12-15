@@ -1,0 +1,74 @@
+images:
+  repository: bravelove123/ecr
+  tag: "4b9f965a"
+  # Optional: fullImage overrides repository/name/tag assembly above.
+  # Set this to the complete image (e.g. "bravelove123/ecr:d30e2dbf") when your image
+  # is pushed as <repo>:<tag> rather than <repo>/<service>:<tag>.
+  fullImage: "bravelove123/ecr:d30e2dbf"
+
+serviceAccounts:
+  create: true
+  annotations: {}
+  annotationsOnlyForCartservice: false
+
+networkPolicies:
+  create: false
+
+sidecars:
+  create: false
+
+authorizationPolicies:
+  create: false
+
+opentelemetryCollector:
+  create: false
+  name: opentelemetrycollector
+  projectId: "PROJECT_ID"
+
+seccompProfile:
+  enable: false
+  type: RuntimeDefault
+
+securityContext:
+  enable: true
+
+productCatalogService:
+  name: productcatalogservice
+
+shippingService:
+  name: shippingservice
+
+paymentService:
+  name: paymentservice
+
+recommendationservice:
+  name: recommendationservice
+
+recommendationservice:
+  name: recommendationservice
+
+cartService:
+  name: cartservice
+
+recommendationservice:
+  create: true
+  name: recommendationservice
+  containerPort: 8080
+  servicePort: 8080
+  resources:
+    requests:
+      cpu: 100m
+      memory: 220Mi
+  autoscaling:
+    enabled: true
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 80
+    limits:
+      cpu: 200m
+      memory: 450Mi
+
+googleCloudOperations:
+  profiler: false
+  tracing: false
+  metrics: false
