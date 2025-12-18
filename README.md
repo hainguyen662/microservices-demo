@@ -6,6 +6,11 @@ This project demonstrates a complete **Cloud-Native DevOps** workflow for deploy
 
 > **Note:** This repository is a mirror for demonstration and portfolio purposes. The actual system allows for hybrid operations using GitLab CI.
 
+## 🎥 Project Demo
+
+[![Watch the Demo](https://img.youtube.com/vi/ycPEOOnVOPg/maxresdefault.jpg)](https://www.youtube.com/watch?v=ycPEOOnVOPg)
+*Click the image above to watch the full GitOps & CI/CD workflow demo.*
+
 ## 🏗️ System Architecture
 
 The platform follows the **GitOps** principle, using ArgoCD as the single source of truth for the cluster state.
@@ -13,7 +18,7 @@ The platform follows the **GitOps** principle, using ArgoCD as the single source
 **Workflow:**
 `Developer` ➔ `GitLab CI (Build & Push)` ➔ `Docker Hub` ➔ `Update Helm Chart` ➔ `ArgoCD Sync` ➔ `Kubernetes Cluster`
 
-![Architecture Diagram](DEMO/architecture-diagram.png)
+![Architecture Diagram](architecture-diagram/architecture-diagram.png)
 
 ## 🛠️ Tech Stack
 
