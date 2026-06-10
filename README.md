@@ -31,41 +31,47 @@ The platform is built on the **GitOps** principle: the Git repository is the sin
 
 ### End-to-End Workflow
 
-```
-Developer commits to `main`
-        │
-        ▼
-┌─────────────────────┐
-│   GitLab CI Runner  │  1. Build Docker image
-│   (.gitlab-ci.yml)  │  2. Tag with commit SHA
-│                     │  3. Push to Docker Hub
-└────────┬────────────┘
-         │
-         ▼
-┌─────────────────────┐
-│     Docker Hub      │  Image registry
-│  bravelove123/ecr   │  (e.g. :3ac8898a)
-└────────┬────────────┘
-         │
-         ▼
-┌─────────────────────┐
-│   GitLab CI (cont.) │  4. Clone devops/boutique-charts
-│                     │  5. Update values.yaml (image.tag)
-│                     │  6. Commit & push → "ci: update values tag <SHA>"
-└────────┬────────────┘
-         │
-         ▼
-┌─────────────────────┐
-│       ArgoCD        │  7. Detects Git change (automated sync)
-│   (GitOps engine)   │  8. Applies Helm chart to cluster
-│  prune + selfHeal   │
-└────────┬────────────┘
-         │
-         ▼
-┌─────────────────────┐
-│  Kubernetes Cluster │  Rolling Update → Zero Downtime
-│  namespace: boutique│
-└─────────────────────┘
+```mermaid
+flowchart TD
+    DEV(["👨‍💻 Developer<br/>commits to <code>main</code>"])
+
+    subgraph CI["⚙️ GitLab CI — per-service pipeline"]
+        direction TB
+        BUILD["🐳 <b>1.</b> Build Docker image"]
+        TAG["🏷️ <b>2.</b> Tag with commit SHA"]
+        PUSHIMG["📤 <b>3.</b> Push to registry"]
+        VALUES["📝 <b>4-6.</b> Update <code>values.yaml</code> image.tag<br/>commit → <i>ci: update values tag SHA</i>"]
+        BUILD --> TAG --> PUSHIMG --> VALUES
+    end
+
+    HUB[("🐋 Docker Hub<br/><code>bravelove123/ecr</code>")]
+    CHARTS[("📚 Git repo<br/><code>devops/boutique-charts</code>")]
+
+    subgraph CD["🐙 ArgoCD — GitOps engine"]
+        SYNC["🔄 <b>7.</b> Detects Git change<br/>automated sync · prune · selfHeal"]
+        APPLY["⛵ <b>8.</b> Applies Helm chart"]
+        SYNC --> APPLY
+    end
+
+    subgraph K8S["☸️ Kubernetes — namespace: boutique"]
+        ROLL["♻️ Rolling Update<br/><b>zero downtime</b>"]
+        PODS["🚀 12 polyglot microservices"]
+        ROLL --> PODS
+    end
+
+    DEV --> CI
+    PUSHIMG -.-> HUB
+    VALUES --> CHARTS
+    CHARTS --> SYNC
+    APPLY --> ROLL
+    HUB -.->|"pull image :SHA"| K8S
+
+    classDef dev fill:#22d3ee,stroke:#0e7490,color:#083344,font-weight:bold
+    classDef store fill:#1e293b,stroke:#64748b,color:#e2e8f0
+    classDef k8s fill:#326CE5,stroke:#1e40af,color:#ffffff
+    class DEV dev
+    class HUB,CHARTS store
+    class ROLL,PODS k8s
 ```
 
 ![Architecture Diagram](architecture-diagram/architecture-diagram.png)
