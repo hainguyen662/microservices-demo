@@ -1,10 +1,16 @@
-# DevOps Platform: Google Microservices Demo (Online Boutique)
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0:22d3ee,50:3b82f6,100:8b5cf6&height=180&section=header&text=Online%20Boutique%20DevOps%20Platform&fontSize=36&fontColor=ffffff&animation=fadeIn&fontAlignY=32&desc=GitLab%20CI%20%E2%80%A2%20ArgoCD%20%E2%80%A2%20Helm%20%E2%80%A2%20Prometheus%20%E2%80%A2%20Loki&descAlignY=54&descSize=16" width="100%"/>
 
-![CI Status](https://img.shields.io/badge/build-passing-brightgreen)
-![Kubernetes](https://img.shields.io/badge/kubernetes-v1.28-blue)
-![GitOps](https://img.shields.io/badge/gitops-argocd-orange)
-![Helm](https://img.shields.io/badge/helm-v3-informational)
-![License](https://img.shields.io/badge/license-MIT-green)
+<div align="center">
+
+![CI Status](https://img.shields.io/badge/build-passing-brightgreen?style=for-the-badge)
+![Kubernetes](https://img.shields.io/badge/kubernetes-v1.28-326CE5?style=for-the-badge&logo=kubernetes&logoColor=white)
+![GitOps](https://img.shields.io/badge/gitops-argocd-EF7B4D?style=for-the-badge&logo=argo&logoColor=white)
+![Helm](https://img.shields.io/badge/helm-v3-0F1689?style=for-the-badge&logo=helm&logoColor=white)
+![License](https://img.shields.io/badge/license-MIT-green?style=for-the-badge)
+
+<img src="https://skillicons.dev/icons?i=kubernetes,gitlab,docker,go,java,cs,py,nodejs,prometheus,grafana&perline=10" alt="Tech stack"/>
+
+</div>
 
 A complete **Cloud-Native DevOps** platform built around Google's [Online Boutique](https://github.com/GoogleCloudPlatform/microservices-demo) — a polyglot microservices e-commerce application. This project automates the full software delivery lifecycle: from a developer's `git push` to a zero-downtime production deployment on Kubernetes, using GitLab CI, ArgoCD, Helm, and a full observability stack.
 
@@ -265,3 +271,5 @@ kubectl port-forward svc/frontend 8080:80 -n boutique
 | **Full observability** | Metrics (Prometheus/Grafana) + Logs (Loki/Promtail) in one Grafana UI |
 | **Autoscaling** | HPA configured per service, validated with Locust load tests |
 | **Polyglot** | 6 languages, 12 services — each independently built and deployed |
+
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0:22d3ee,50:3b82f6,100:8b5cf6&height=100&section=footer" width="100%"/>
